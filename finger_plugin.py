@@ -2,6 +2,8 @@ import idc
 import idaapi
 import idautils
 import traceback
+import threading
+import queue 
 from finger_sdk import client, ida_func
 
 
@@ -11,36 +13,68 @@ class FingerManager:
         self.headers = {'content-type': 'application/json'}
         self.timeout = 5
         self.client = None
+        self.verify = False
 
-
-    def recognize_function(self, start_ea):
+    def recognize_function(self,func_feat):
         func_symbol = None
         try:
             self.client = client.Client(self.url, self.headers, self.timeout)
-            func_feat = ida_func.get_func_feature(start_ea)
+            #func_feat = ida_func.get_func_feature(start_ea)
             if func_feat:
                 func_id, res = self.client.recognize_function(func_feat)
                 if res and res[func_id]:
                     func_symbol = res[func_id]
         except Exception as e:
+            print('[x] Exception occured when recognize %s'%func_feat)
             print(traceback.format_exc())
         if func_symbol:
-            func_symbol = str(func_symbol)  # python2 unicode to str
+            func_symbol = str(func_symbol) 
         return func_symbol
 
+    #def _internal_recognize_function(self, funcs, startpos,length, namelist,func_feat, queue):
+    def _internal_recognize_function(self, funcs, startpos,length,func_feat, queue):
+        #multi-threading version
+        for ipfn in range(startpos,startpos+length,1):
+            #func_name = namelist[ipfn]
+            func_symbol = self.recognize_function(func_feat[ipfn])
+            if(func_symbol):
+                queue.put([funcs[ipfn],func_symbol])
+            else:
+                queue.put([funcs[ipfn],''])
+        return
 
     def recognize_selected_function(self, funcs):
+        namelist = []
+        func_feat = []
         for pfn in funcs:
-            func_name = idc.get_func_name(pfn.start_ea)
-            func_symbol = self.recognize_function(pfn.start_ea)
-            if func_symbol:
-                idc.set_color(pfn.start_ea, idc.CIC_FUNC, 0x98FF98)
-                idaapi.set_name(pfn.start_ea, func_symbol, idaapi.SN_FORCE)
-                idaapi.update_func(pfn)
-                print("[+]Recognize %s: %s" %(func_name, func_symbol))
+            #namelist.append(idc.get_func_name(pfn.start_ea))
+            func_feat.append( ida_func.get_func_feature(pfn.start_ea))
+        print("[N]Trying to recognize %d functions with 16 threads" %(len(funcs)))
+        thread_pool = []
+        q = []
+        results = [] 
+        for i in range(16):
+            q.append(queue.Queue())
+            print("[T]Thread #%d gets %d to %d"%(i, i*len(funcs) /16, i*len(funcs) /16 +len(funcs) /16))
+            #t = threading.Thread(target = self._internal_recognize_function, args = ( funcs, int(i*len(funcs) /16) ,int(len(funcs) /16 ),namelist,func_feat,q[i]))
+            t = threading.Thread(target = self._internal_recognize_function, args = ( funcs, int(i*len(funcs) /16) ,int(len(funcs) /16 ),func_feat,q[i]))
+            thread_pool.append(t)
+            t.start()
+        
+        for thread in thread_pool:
+            thread.join()
+        for i in range(16):
+            for j in range(q[i].qsize()):
+                results.append(q[i].get())
+        print("[+]Successfully fetched %d func_symbol"%len(results))
+        for r in results:
+            if r[1] != '':
+                idc.set_color(r[0].start_ea, idc.CIC_FUNC, 0x98FF98)
+                idaapi.set_name(r[0].start_ea, r[1], idaapi.SN_FORCE)
+                idaapi.update_func(r[0])
+                print("[+]Recognize %s: %s" %(r[0],r[1]))
             else:
-                print("[-]%s recognize failed" %(func_name))
-
+                print("[-]%s recognize failed" %(r[0]))
 
     def recognize_function_callback(self, menupath):
         ea = idaapi.get_screen_ea()
