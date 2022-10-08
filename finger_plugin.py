@@ -44,29 +44,46 @@ class FingerManager:
         return
 
     def recognize_selected_function(self, funcs):
-        namelist = []
+        #modify this constant to allocate more threads.
+        threads_count = 16
+        #start
+        step = 1
+        sum_step = 6
+        idaapi.show_wait_box('HIDECANCEL\nFinger:Recognizing %d functions...\n[%d/%d] Getting function features' %(len(funcs),step,sum_step))
+        #namelist = []
         func_feat = []
         for pfn in funcs:
             #namelist.append(idc.get_func_name(pfn.start_ea))
             func_feat.append( ida_func.get_func_feature(pfn.start_ea))
-        print("[N]Trying to recognize %d functions with 16 threads" %(len(funcs)))
+        print("[N]Trying to recognize %d functions with threads_count threads" %(len(funcs)))
+        step = step + 1
+        idaapi.replace_wait_box('HIDECANCEL\nFinger:Recognizing %d functions...\n[%d/%d] Setting up threads\nAllocating %d threads' %(len(funcs),step,sum_step,threads_count))
         thread_pool = []
         q = []
         results = [] 
-        for i in range(16):
+        for i in range(threads_count):
             q.append(queue.Queue())
-            print("[T]Thread #%d gets %d to %d"%(i, i*len(funcs) /16, i*len(funcs) /16 +len(funcs) /16))
-            #t = threading.Thread(target = self._internal_recognize_function, args = ( funcs, int(i*len(funcs) /16) ,int(len(funcs) /16 ),namelist,func_feat,q[i]))
-            t = threading.Thread(target = self._internal_recognize_function, args = ( funcs, int(i*len(funcs) /16) ,int(len(funcs) /16 ),func_feat,q[i]))
+            print("[T]Thread #%d gets %d to %d"%(i, i*len(funcs) /threads_count, i*len(funcs) /threads_count +len(funcs) /threads_count))
+            #t = threading.Thread(target = self._internal_recognize_function, args = ( funcs, int(i*len(funcs) /threads_count) ,int(len(funcs) /threads_count ),namelist,func_feat,q[i]))
+            t = threading.Thread(target = self._internal_recognize_function, args = ( funcs, int(i*len(funcs) /threads_count) ,int(len(funcs) /threads_count ),func_feat,q[i]))
             thread_pool.append(t)
             t.start()
-        
+        step = step + 1
+        idaapi.replace_wait_box('HIDECANCEL\nFinger:Recognizing %d functions...\n[%d/%d] Waiting for threads to end' %(len(funcs),step,sum_step))
         for thread in thread_pool:
             thread.join()
-        for i in range(16):
+        
+        step = step + 1
+        idaapi.replace_wait_box('HIDECANCEL\nFinger:Recognizing %d functions...\n[%d/%d] Getting thread results' %(len(funcs),step,sum_step))
+
+        for i in range(threads_count):
             for j in range(q[i].qsize()):
                 results.append(q[i].get())
         print("[+]Successfully fetched %d func_symbol"%len(results))
+
+        step = step + 1
+        idaapi.replace_wait_box('HIDECANCEL\nFinger:Successfully fetched %d func_symbol\n[%d/%d] Setting up ida details' %(len(results),step,sum_step))
+        failed_func_count = 0
         for r in results:
             if r[1] != '':
                 idc.set_color(r[0].start_ea, idc.CIC_FUNC, 0x98FF98)
@@ -74,8 +91,14 @@ class FingerManager:
                 idaapi.update_func(r[0])
                 print("[+]Recognize %s: %s" %(r[0],r[1]))
             else:
+                failed_func_count = failed_func_count + 1
                 print("[-]%s recognize failed" %(r[0]))
-
+        
+        step = step + 1
+        idaapi.replace_wait_box('HIDECANCEL\nFinger:Done!\n[%d/%d] Done! ' %(step,sum_step))
+        idaapi.hide_wait_box()
+        print("[N]%d function(s) recognize failed" %(failed_func_count))
+    
     def recognize_function_callback(self, menupath):
         ea = idaapi.get_screen_ea()
         pfn = idaapi.get_func(ea)

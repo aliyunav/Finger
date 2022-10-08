@@ -1,7 +1,8 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\finger_sdk"
   ],
-  "SelectedNode": "\\D:\\Projects\\Finger",
+  "SelectedNode": "\\finger_sdk\\ida_func.py",
   "PreviewInSolutionExplorer": false
 }
