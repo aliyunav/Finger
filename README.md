@@ -1,3 +1,5 @@
+# READ INSTALLATION FIRST !!!!!
+-----
 # Finger Multi-threading
 
 An improved version of brilliant ida plugin finger, fixed 'always pop up' issue and implemented multi-threading to accelerate the recognition process.
