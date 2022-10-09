@@ -8,7 +8,7 @@ An improved version of brilliant ida plugin finger, fixed 'always pop up' issue 
 
 * Download release version of source code.
 * Replace the `finger_plugin.py` in `IDA_PATH/plugins`
-* **Replace the `ida_func.py` in `%AppData%\Roaming\Python\Python38\site-packages\finger_sdk\client.py`**
+* **Replace the `ida_func.py` in `%AppData%\Roaming\Python\Python38\site-packages\finger_sdk\client.py`** (differs from users)
 
 Enjoy!
 
@@ -23,6 +23,7 @@ Enjoy!
   ```
 
   Most of time this is normal. If it in deed influenced your project , considering using original version.
+* Python 3 supported, any issue of bug please propose the issues.  
 ![2022-10-07 22-19-17 00_00_10-00_01_10~1](https://user-images.githubusercontent.com/20926583/194583856-81b9a536-9918-4eec-bb44-ba6a308ec007.gif)
 
 
