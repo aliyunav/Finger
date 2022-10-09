@@ -174,7 +174,7 @@ class FingerUIManager:
 
 
     def selected_function_callback(self, ctx):
-        funcs = map(idaapi.getn_func, ctx.chooser_selection)
+        funcs = list(idaapi.getn_func, ctx.chooser_selection)
         if ctx.action == "Finger:RecognizeSelected":
             self.mgr.recognize_selected_function(funcs)
 
