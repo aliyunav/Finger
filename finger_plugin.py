@@ -45,7 +45,9 @@ class FingerManager:
 
     def recognize_selected_function(self, funcs):
         #modify this constant to allocate more threads.
-        threads_count = 16
+        threads_count = 128
+        if(len(funcs) < threads_count):
+            threads_count = len(funcs)
         #start
         step = 1
         sum_step = 6
