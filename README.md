@@ -16,7 +16,7 @@ Enjoy!
 
 ## Known issue
 
-* After running the plugin, your IDA will stuck into no-response status, it takes time depends on your functions count.
+* After running the plugin, your IDA will stuck into no-response status, it takes time depends on your functions count. （UI Completed)
 
 * Sometimes due to remote server SSL problem, you will receive exception:
 
@@ -25,7 +25,8 @@ Enjoy!
   ```
 
   Most of time this is normal. If it in deed influenced your project , considering using original version.
-* Python 3 supported, any issue of bug please propose the issues.  
+* Python 3 supported, any issue of bug please propose.
+
 * **`TypeError: object of type 'map' has no len()`** Solution manually modify `finger_plugin.py` at line 177:  
 ``` python
        # funcs = map(idaapi.getn_func, ctx.chooser_selection) # old
