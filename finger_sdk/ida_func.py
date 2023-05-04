@@ -20,7 +20,8 @@ class FuncSigFeature:
         for s in self.string_pool:
             self.string_list[str(s)] = s.ea
 
-
+    def set_string_pool(self,_pool):
+        self.string_pool = _pool
     def get_file_structure(self):
         info = idaapi.get_inf_structure()
         arch = info.procName
@@ -97,12 +98,13 @@ class FuncSigFeature:
             return False
 
 
-def get_func_feature(ea):
+def get_func_feature(ea,string_pool):
     content = dict()
     pfn = idaapi.get_func(ea)
     if pfn:
         func_addr = pfn.start_ea
         Func = FuncSigFeature()
+        Func.set_string_pool(string_pool)
         if Func.filter_segment(func_addr):
             return None
         arch, endian = Func.get_file_structure()
