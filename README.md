@@ -1,6 +1,3 @@
-# It is recommended to use IDA7.5 to run this plugin. Due to the security update of Hex-ray, this plugin will cause crash when running on a higher version of IDA such as 7.7!
-# 建议使用IDA7.5运行此插件，由于Hex-ray的安全更新，此插件在7.7等高版本IDA上运行将导致IDA崩溃！  
------
 # Finger Multi-threading
 
 An improved version of brilliant ida plugin finger, fixed 'always pop up' issue and implemented multi-threading to accelerate the recognition process.
