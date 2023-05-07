@@ -6,8 +6,10 @@ import re
 
 class FuncSigFeature:
     #using static class variable to avoid repeating loading.
-    string_pool = idautils.Strings()
-    def __init__(self):
+    #this code may not secured under 7.7, removed
+    #20230507
+    #string_pool = idautils.Strings()
+    def __init__(self,string_pool):
         self.file_path = idc.get_input_file_path()
 
         self.code_list = ["",".text",".plt",".got","extern",".pdata",".bss"]
@@ -15,13 +17,12 @@ class FuncSigFeature:
         self.control_ins_list = ["call","jc","jnc","jz","jnz","js","jns","jo","jno","jp",
                                 "jpe","jnp","jpo","ja","jnbe","jae","jnb","jb","jnae","jbe",
                                 "jna","je","jne","jg","jnle","jge","jnl","jl","jnge","jle","jng"]
-       
+       #may not compatible for python 2
         self.string_list = dict()
-        for s in self.string_pool:
+        for s in string_pool:
             self.string_list[str(s)] = s.ea
 
-    def set_string_pool(self,_pool):
-        self.string_pool = _pool
+
     def get_file_structure(self):
         info = idaapi.get_inf_structure()
         arch = info.procName
@@ -103,8 +104,7 @@ def get_func_feature(ea,string_pool):
     pfn = idaapi.get_func(ea)
     if pfn:
         func_addr = pfn.start_ea
-        Func = FuncSigFeature()
-        Func.set_string_pool(string_pool)
+        Func = FuncSigFeature(string_pool)
         if Func.filter_segment(func_addr):
             return None
         arch, endian = Func.get_file_structure()
